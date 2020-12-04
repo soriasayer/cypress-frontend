@@ -152,7 +152,7 @@ describe('The first suite', () => {
     })
   })
 
-  it.only('check boxes', () => {
+  it('check boxes', () => {
     cy.visit('/')
     cy.contains('Modal & Overlays').click()
     cy.contains('Toastr').click()
@@ -165,4 +165,81 @@ describe('The first suite', () => {
     cy.get('[type="checkbox"]').eq(2).click({force: true})
   })
 
+  it('lists and dropdowns', () => {
+    cy.visit('/')
+    // 1
+    // cy.get('nav nb-select').click()
+    // cy.get(".options-list").contains('Dark').click()
+    // cy.get('nav nb-select').should('contain', 'Dark')
+    // cy.get('nb-layout-header nav').should('have.css', 'background-color', 'rgb(34, 43, 69)')
+
+    // 2
+
+    cy.get('nav nb-select').then(dropdown => {
+      cy.wrap(dropdown).click()
+      cy.get(".options-list nb-option").each((listItem, index) => {
+        const itemText = listItem.text().trim()
+
+        const itemColors = {
+          "Light": "rgb(255, 255, 255)",
+          "Dark": "rgb(34, 43, 69)",
+          "Cosmic": "rgb(50, 50, 89)",
+          "Corporate": "rgb(255, 255, 255)"
+        }
+
+        cy.wrap(listItem).click()
+        cy.wrap(dropdown).should('contain', itemText)
+        cy.get('nb-layout-header nav').should('have.css', 'background-color', itemColors[itemText])
+        if(index < 3) {
+          cy.wrap(dropdown).click()
+        }
+      })
+    })
+  })
+
+  // finding an element in a table
+
+  it.only('Web Tables', () => {
+    cy.visit('/')
+    cy.contains('Tables & Data').click()
+    cy.contains('Smart Table').click()
+
+    // 1
+    cy.get('tbody').contains('tr', 'Larry').then(tableRow => {
+      cy.wrap(tableRow).find('.nb-edit').click()
+      cy.wrap(tableRow).find('[placeholder="Age"]').clear().type('26')
+      cy.wrap(tableRow).find(".nb-checkmark").click()
+      cy.wrap(tableRow).find('td').eq(6).should('contain', '26')
+    })
+
+    // 2
+
+    cy.get('thead').find('.nb-plus').click()
+    cy.get('thead').find('tr').eq(2).then(tableRow => {
+      cy.wrap(tableRow).find('[placeholder="First Name"]').type('Askaan')
+      cy.wrap(tableRow).find('[placeholder="Last Name"]').type('Sayer')
+      cy.wrap(tableRow).find('[placeholder="Username"]').type('ashkaansayer')
+      cy.wrap(tableRow).find('[placeholder="E-mail"]').type('ashkaan@email.com')
+      cy.wrap(tableRow).find('[placeholder="Age"]').type('2')
+      cy.wrap(tableRow).find('.nb-checkmark').click()
+    })
+    cy.get('tbody tr').first().find('td').then(tableColunms => {
+      cy.wrap(tableColunms).eq(2).should('contain', 'Askaan')
+      cy.wrap(tableColunms).eq(3).should('contain', 'Sayer')
+    })
+
+    // 3
+    const ageArray = [20, 30, 40, 200]
+    cy.wrap(ageArray).each(age => {
+      cy.get('thead [placeholder="Age"]').clear().type(age)
+      cy.wait(500)
+      cy.get('tbody tr').each(tableRows => {
+        if(age === 200) {
+          cy.wrap(tableRows).should('contain', 'No data found')
+        } else {
+          cy.wrap(tableRows).find('td').eq(6).should('contain', age)
+        }
+      })
+    })
+  })
 })
