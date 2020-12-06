@@ -115,15 +115,33 @@ describe('The first suite', () => {
       })
   })
 
-  it('assert propertis', () => {
+  it.only('assert propertis', () => {
     cy.visit('/')
     cy.contains('Forms').click()
     cy.contains('Datepicker').click()
 
+    function selectNextMonth (day){
+      let date = new Date()
+      date.setDate(date.getDate() + day)
+      let futureDay = date.getDate()
+      let futureMonth = date.toLocaleString('defaul', {month: 'short'})
+      let dateFormat = futureMonth+' '+futureDay+', '+date.getFullYear()
+
+      cy.get('nb-calendar-navigation').invoke('attr', 'ng-reflect-date').then(dateAttriute => {
+        if(!dateAttriute.includes(futureMonth)){
+          cy.get('[data-name="chevron-right"]').click()
+          selectNextMonth(day)
+        } else {
+          cy.get('nb-calendar-day-picker [class="day-cell ng-star-inserted"]').contains(futureDay).click()
+        }
+      })
+      return dateFormat
+    }
+
     cy.contains('nb-card', 'Common Datepicker').find('input').then(input => {
       cy.wrap(input).click()
-      cy.get('nb-calendar-day-picker').contains('17').click()
-      cy.wrap(input).invoke('prop', 'value').should('contain', 'Dec 17, 2020')
+      let dateFormat = selectNextMonth(60)
+      cy.wrap(input).invoke('prop', 'value').should('contain', dateFormat)
     })
   })
 
@@ -199,7 +217,7 @@ describe('The first suite', () => {
 
   // finding an element in a table
 
-  it.only('Web Tables', () => {
+  it('Web Tables', () => {
     cy.visit('/')
     cy.contains('Tables & Data').click()
     cy.contains('Smart Table').click()
